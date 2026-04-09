@@ -12,16 +12,21 @@
         }
         .board-container {
             max-width: 1100px;
-            margin: 1rem auto;
-            padding: 1rem;
+            margin: 0.5rem auto;
+            padding: 0.25rem; /* Even smaller padding for small screens */
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
+        @media (min-width: 580px) {
+            .board-container {
+                padding: 0.5rem;
+            }
+        }
         @media (min-width: 768px) {
             .board-container {
                 margin: 2rem auto;
-                padding: 2rem;
+                padding: 1.5rem;
             }
         }
         
@@ -37,24 +42,37 @@
         .game-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0.25rem;
-            min-width: 700px; /* Гарантирует, что сетка не "схлопнется" на мобилках */
+            border-spacing: 0.15rem; /* Tight spacing for mobile */
+            min-width: 380px; /* Reduced to fit better on smaller phones */
+        }
+        @media (min-width: 580px) {
+            .game-table {
+                border-spacing: 0.25rem;
+                min-width: 520px;
+            }
         }
         @media (min-width: 768px) {
             .game-table {
                 border-spacing: 0.5rem;
+                min-width: 800px;
             }
         }
 
         .category-name {
             background-color: #e5e7eb;
-            padding: 0.75rem;
+            padding: 0.35rem;
             text-align: left;
             font-weight: 600;
             border-radius: 4px;
             width: 30%;
-            font-size: 0.85rem;
-            line-height: 1.2;
+            font-size: 0.65rem; /* Tiny for mobile */
+            line-height: 1.1;
+        }
+        @media (min-width: 580px) {
+            .category-name {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
         }
         @media (min-width: 768px) {
             .category-name {
@@ -66,15 +84,22 @@
         .point-cell {
             color: white;
             text-align: center;
-            padding: 0.75rem 0.5rem;
+            padding: 0.4rem 0.2rem;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.75rem; /* Smaller numbers */
             cursor: pointer;
             border-radius: 4px;
             transition: all 0.2s ease;
             user-select: none;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            min-width: 60px;
+            min-width: 42px;
+        }
+        @media (min-width: 580px) {
+            .point-cell {
+                padding: 0.6rem 0.3rem;
+                font-size: 0.9rem;
+                min-width: 55px;
+            }
         }
         @media (min-width: 768px) {
             .point-cell {
@@ -97,34 +122,34 @@
         }
 
         /* Цветовой градиент */
-        .val-10 { background-color: #4ade80; border-bottom: 3px solid #16a34a; }
-        .val-20 { background-color: #a3e635; border-bottom: 3px solid #65a30d; }
-        .val-30 { background-color: #facc15; border-bottom: 3px solid #ca8a04; }
-        .val-40 { background-color: #fb923c; border-bottom: 3px solid #ea580c; }
-        .val-50 { background-color: #dc2626; border-bottom: 3px solid #991b1b; }
+        .val-10 { background-color: #4ade80; border-bottom: 2px solid #16a34a; }
+        .val-20 { background-color: #a3e635; border-bottom: 2px solid #65a30d; }
+        .val-30 { background-color: #facc15; border-bottom: 2px solid #ca8a04; }
+        .val-40 { background-color: #fb923c; border-bottom: 2px solid #ea580c; }
+        .val-50 { background-color: #dc2626; border-bottom: 2px solid #991b1b; }
 
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             justify-content: center;
             align-items: center;
             z-index: 50;
-            padding: 1rem;
+            padding: 0.5rem;
         }
         
         .modal-content {
-            max-height: 90vh;
+            max-height: 95vh;
             overflow-y: auto;
             width: 100%;
-            max-width: 600px;
+            max-width: 550px;
         }
 
         .answer-box {
             display: none;
-            margin-top: 1.5rem;
-            padding: 1rem;
+            margin-top: 1rem;
+            padding: 0.75rem;
             background-color: #f0fdf4;
             border-left: 4px solid #22c55e;
             border-radius: 4px;
@@ -132,9 +157,9 @@
         .svoya-igra {
             background-color: #fef3c7;
             color: #92400e;
-            padding: 0.25rem 0.75rem;
+            padding: 0.2rem 0.6rem;
             border-radius: 9999px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: bold;
             border: 1px solid #f59e0b;
             display: inline-block;
@@ -145,7 +170,7 @@
 <body>
 
 <div class="board-container">
-    <h1 class="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800 text-center px-2">Интеллектуальная игра по химии: "Синий раунд"</h1>
+    <h1 class="text-sm sm:text-lg md:text-2xl font-bold mb-2 md:mb-6 text-gray-800 text-center px-1">Химическая игра: "Синий раунд"</h1>
     
     <div class="table-responsive">
         <table class="game-table">
@@ -155,40 +180,40 @@
         </table>
     </div>
 
-    <div class="mt-8 p-4 border-t border-gray-200">
-        <h2 class="text-lg font-bold text-red-700 mb-2">Условие игры "Красный раунд"</h2>
-        <p class="text-sm md:text-base text-gray-700 italic">
-            Этот раунд проводится аналогично "синему", но изменяются области знаний и цена вопроса в соответствии с таблицей...
+    <div class="mt-4 p-2 border-t border-gray-200">
+        <h2 class="text-xs sm:text-md font-bold text-red-700 mb-1">Условие игры "Красный раунд"</h2>
+        <p class="text-[10px] sm:text-xs md:text-sm text-gray-600 italic leading-snug">
+            Этот раунд проводится аналогично "синему", но изменяются области знаний и цена вопроса...
         </p>
     </div>
 </div>
 
 <!-- Модальное окно вопроса -->
 <div id="q-modal" class="modal">
-    <div class="bg-white p-6 md:p-8 rounded-lg shadow-xl modal-content">
+    <div class="bg-white p-5 md:p-8 rounded-lg shadow-xl modal-content">
         <div id="svoya-badge" class="svoya-igra hidden">★ СВОЯ ИГРА ★</div>
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
-            <h3 id="modal-title" class="text-lg md:text-xl font-bold text-blue-700"></h3>
-            <span id="modal-points" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold text-sm w-fit"></span>
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-3 gap-1">
+            <h3 id="modal-title" class="text-md md:text-xl font-bold text-blue-700"></h3>
+            <span id="modal-points" class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold text-xs w-fit"></span>
         </div>
         
-        <div class="py-2">
-            <p id="question-text" class="text-base md:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-line"></p>
+        <div class="py-1">
+            <p id="question-text" class="text-sm md:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-line"></p>
         </div>
 
         <div id="answer-container" class="answer-box">
-            <p class="text-xs font-bold text-green-700 mb-1">ОТВЕТ:</p>
-            <p id="answer-text" class="text-gray-900 font-bold text-base md:text-lg"></p>
+            <p class="text-[10px] font-bold text-green-700 mb-1">ОТВЕТ:</p>
+            <p id="answer-text" class="text-gray-900 font-bold text-sm md:text-lg"></p>
         </div>
 
-        <div class="mt-6 md:mt-8 flex flex-col sm:flex-row gap-2">
-            <button id="show-answer-btn" onclick="toggleAnswer()" class="order-1 sm:order-none flex-1 bg-green-600 text-white px-4 py-3 rounded hover:bg-green-700 transition font-bold">
+        <div class="mt-5 md:mt-8 flex flex-col sm:flex-row gap-2">
+            <button id="show-answer-btn" onclick="toggleAnswer()" class="order-1 sm:order-none flex-1 bg-green-600 text-white px-4 py-2.5 rounded hover:bg-green-700 transition font-bold text-sm">
                 Показать ответ
             </button>
-            <button id="keep-disabled-btn" onclick="closeAndKeepDisabled()" class="order-2 sm:order-none flex-1 bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700 transition hidden font-bold">
+            <button id="keep-disabled-btn" onclick="closeAndKeepDisabled()" class="order-2 sm:order-none flex-1 bg-blue-600 text-white px-4 py-2.5 rounded hover:bg-blue-700 transition hidden font-bold text-sm">
                 Завершить
             </button>
-            <button onclick="closeModalAndReset()" class="order-3 sm:order-none flex-1 bg-gray-800 text-white px-4 py-3 rounded hover:bg-gray-900 transition font-bold">
+            <button onclick="closeModalAndReset()" class="order-3 sm:order-none flex-1 bg-gray-800 text-white px-4 py-2.5 rounded hover:bg-gray-900 transition font-bold text-sm">
                 Отмена
             </button>
         </div>
