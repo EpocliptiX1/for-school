@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Химическая игра — Красный раунд</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fef2f2;
+        }
+
+        .point-cell {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .point-cell:not(.visited):hover {
+            transform: translateY(-2px);
+            filter: brightness(110%);
+            box-shadow: 0 4px 12px rgba(185, 28, 28, 0.2);
+        }
+
+        .point-cell.visited {
+            background-color: #f1f5f9 !important;
+            color: #cbd5e1 !important;
+            border-color: #e2e8f0 !important;
+            cursor: default;
+            pointer-events: none;
+            text-shadow: none;
+        }
+
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #fee2e2;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #fca5a5;
+            border-radius: 10px;
+        }
+
+        .svoya-igra-pulse {
+            animation: pulse-amber 2s infinite;
+        }
+
+        @keyframes pulse-amber {
+            0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(251, 191, 36, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+<div class="max-w-6xl mx-auto">
+    <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-red-900 mb-2 tracking-tight">Химическая игра</h1>
+        <div class="inline-block bg-red-600 text-white px-6 py-1.5 rounded-full text-lg font-bold tracking-widest shadow-lg uppercase">
+            КРАСНЫЙ РАУНД
+        </div>
+    </header>
+
+    <!-- Игровое табло -->
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-red-100">
+        <div class="table-container overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-red-50/50 border-bottom border-red-100">
+                        <th class="p-5 text-left text-red-800 font-black uppercase text-xs tracking-widest w-1/4">Категория</th>
+                        <th colspan="5" class="p-5 text-center text-red-800 font-black uppercase text-xs tracking-widest">Баллы</th>
+                    </tr>
+                </thead>
+                <tbody id="game-board">
+                    <!-- Заполняется через JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Инфо-панель -->
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+        <div class="bg-red-100/50 p-6 rounded-2xl border border-red-200">
+            <h2 class="text-red-900 font-bold mb-2">Особенности</h2>
+            <p class="text-red-800 text-sm leading-relaxed">Повышенные ставки (20-100). При равенстве баллов проводится "Золотой раунд".</p>
+        </div>
+        <div class="bg-amber-50 p-6 rounded-2xl border border-amber-200">
+            <h2 class="text-amber-900 font-bold mb-2">Своя Игра</h2>
+            <p class="text-amber-800 text-sm leading-relaxed">Клетки ★ позволяют команде самой назначить цену вопроса.</p>
+        </div>
+        <div class="bg-blue-50 p-6 rounded-2xl border border-blue-200">
+            <h2 class="text-blue-900 font-bold mb-2">Жеребьевка</h2>
+            <p class="text-blue-800 text-xs leading-tight">
+                1. Первый элемент? (H)<br>
+                2. Поваренная соль? (NaCl)<br>
+                3. Наука о веществах? (Химия)<br>
+                4. В огне не горит? (Лед)
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно вопроса -->
+<div id="modal-overlay" class="fixed inset-0 bg-red-950/90 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden modal-enter flex flex-col border border-white/20">
+        <div class="p-8 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
+            <div>
+                <div id="svoya-badge" class="hidden mb-3">
+                    <span class="bg-amber-400 text-amber-900 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] svoya-igra-pulse border border-amber-500 block w-fit">★ Своя Игра ★</span>
+                </div>
+                <h3 id="modal-category" class="text-red-600 font-black uppercase text-xs tracking-[0.2em] mb-1"></h3>
+                <div id="modal-points" class="text-4xl font-black text-gray-900 tracking-tight"></div>
+            </div>
+            <button onclick="closeModalAndReset()" class="text-gray-400 hover:text-red-600 transition p-2 bg-white rounded-full shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="p-10 md:p-14 flex-grow flex flex-col items-center justify-center text-center">
+            <p id="question-text" class="text-2xl md:text-3xl text-gray-800 font-bold leading-snug whitespace-pre-line"></p>
+            <div id="answer-container" class="mt-10 w-full hidden">
+                <div class="bg-red-50 border-2 border-red-100 rounded-3xl p-8 text-center">
+                    <span class="block text-red-500 text-[10px] font-black uppercase tracking-widest mb-3 font-mono">Правильный ответ</span>
+                    <p id="answer-text" class="text-2xl md:text-3xl text-red-900 font-black"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-5">
+            <button id="show-answer-btn" onclick="showAnswer()" class="bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl transition shadow-xl text-lg">ПРОВЕРИТЬ</button>
+            <button id="finish-btn" onclick="closeModalPermanent()" class="hidden bg-gray-900 hover:bg-black text-white font-black py-5 rounded-2xl transition shadow-xl text-lg uppercase tracking-wider">ПРИНЯТО</button>
+            <button id="cancel-btn" onclick="closeModalAndReset()" class="bg-white border-2 border-gray-200 text-gray-500 hover:text-red-500 font-bold py-5 rounded-2xl transition text-lg">ОТМЕНА</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questionBank = {
+        "q-ecology-20": { q: "Назначение очистных сооружений.", a: "Очистка сточных вод" },
+        "q-ecology-40": { q: "В какой части огурца содержится больше всего нитратов?", a: "В кожуре" },
+        "q-ecology-60": { q: "Какое топливо является самым экологически чистым?", a: "Водород" },
+        "q-ecology-80": { q: "Вещество, дезинфицирующее воду и не оставляющее привкуса.", a: "Озон", isSvoya: true },
+        "q-ecology-100": { q: "Назовите не менее трех важнейших глобальных экологических проблем человечества.", a: "Озоновые дыры, кислотные дожди, парниковый эффект, вырубка лесов" },
+
+        "q-proverbs-20": { q: "Гладь металл, пока холодно.", a: "Куй железо, пока горячо" },
+        "q-proverbs-40": { q: "Звери живут за металл.", a: "Люди гибнут за золото" },
+        "q-proverbs-60": { q: "Не та грязь, что тусклая.", a: "Не все то золото, что блестит" },
+        "q-proverbs-80": { q: "Пролежал холод, сушь и оловянные трубы.", a: "Прошел огонь, воду и медные трубы" },
+        "q-proverbs-100": { q: "В пустыне саксаул коричневый, на нем из меди обручальное кольцо.", a: "У Лукоморья дуб зеленый, златая цепь на дубе том" },
+
+        "q-chemists-20": { q: "Что отвечал Михаил Васильевич Ломоносов на вопрос \"Кто Вы по профессии?\"", a: "Химик", isSvoya: true },
+        "q-chemists-40": { q: "Любимое занятие Дмитрия Ивановича Менделеева в часы отдыха.", a: "Клеить дорожные ящики (чемоданы)" },
+        "q-chemists-60": { q: "Назовите фамилию выдающегося русского химика и композитора, автора оперы \"Князь Игорь\".", a: "А.П. Бородин" },
+        "q-chemists-80": { q: "Какой ученый предложил в качестве символов химических элементов начальные буквы латинских названий?", a: "Йёнс Берцелиус" },
+        "q-chemists-100": { q: "Этот знаменитый ученый в одиночку совершил полет на воздушном шаре для наблюдения солнечной короны. За 4 часа пролетел 100 км.", a: "Дмитрий Иванович Менделеев" },
+
+        "q-daily-20": { q: "Без какого вещества нельзя отутюжить пересушенные вещи?", a: "Без воды" },
+        "q-daily-40": { q: "Назовите металл, находящийся при комнатной температуре в жидком состоянии. Где он используется?", a: "Ртуть (в термометре)" },
+        "q-daily-60": { q: "Назовите не менее трех основных природных консервантов для хранения продуктов.", a: "Поваренная соль, мед, масло, уксус" },
+        "q-daily-80": { q: "Какое вещество используется для обработки слишком кислых почв?", a: "Известь" },
+        "q-daily-100": { q: "Без чего нельзя испечь пирог из кислых яблок?", a: "Без соды" },
+
+        "q-elements-20": { q: "Самый распространенный на Земле элемент.", a: "Кислород" },
+        "q-elements-40": { q: "Какой химический элемент не имеет постоянной прописки в Периодической системе?", a: "Водород" },
+        "q-elements-60": { q: "Какой элемент называется как планета Солнечной системы?", a: "Уран" },
+        "q-elements-80": { q: "Какой химический элемент содержится в морских водорослях?", a: "Йод" },
+        "q-elements-100": { q: "Какой химический элемент назван в честь России?", a: "Рутений", isSvoya: true },
+
+        // Металл - самый, самый (Добавленные вопросы)
+        "q-bestmetal-20": { q: "Назовите самый легкий металл.", a: "Литий" },
+        "q-bestmetal-40": { q: "Какой металл является самым тугоплавким?", a: "Вольфрам" },
+        "q-bestmetal-60": { q: "Какой металл обладает самой высокой электрической проводимостью?", a: "Серебро" },
+        "q-bestmetal-80": { q: "Какой металл является самым пластичным (ковким)?", a: "Золото" },
+        "q-bestmetal-100": { q: "Назовите самый тяжелый (плотный) из существующих металлов.", a: "Осмий (или Иридий)" },
+
+        "q-safety-20": { q: "Какие средства индивидуальной защиты следует применять при приготовлении растворов кислот и щелочей?", a: "Халат, очки, перчатки" },
+        "q-safety-40": { q: "Почему сосуд, из которого наливаешь жидкость, необходимо брать этикеткой в ладонь?", a: "Чтобы капли не испортили этикетку" },
+        "q-safety-60": { q: "Какое правило необходимо соблюдать при растворении серной кислоты в воде?", a: "Кислоту в воду!" },
+        "q-safety-80": { q: "При попадании едкого натра на кожу, что должен сделать учащийся?", a: "Стряхнуть, промыть водой, сообщить учителю" },
+        "q-safety-100": { q: "Нагрев стеклянную трубку докрасна, ученик положил ее на кафель. Какое нарушение он допустил?", a: "Оставил без присмотра; риск растрескивания стекла от перепада температур" },
+
+        "q-substance-20": { q: "Почему лед не тонет, а плавает на поверхности воды?", a: "Плотность льда меньше плотности воды" },
+        "q-substance-40": { q: "Почему для аквариума не пригодна кипяченая вода?", a: "В ней мало кислорода" },
+        "q-substance-60": { q: "Тип химической связи в молекуле воды.", a: "Ковалентная полярная" },
+        "q-substance-80": { q: "Как называется чистая вода, не содержащая примесей?", a: "Дистиллированная", isSvoya: true },
+        "q-substance-100": { q: "Почему трудно хлопать в ладоши под водой?", a: "Из-за высокой плотности воды" }
+    };
+
+    const categories = [
+        { id: "ecology", name: "Химия и экология" },
+        { id: "proverbs", name: "Веселые перевертыши" },
+        { id: "chemists", name: "Галерея химиков" },
+        { id: "daily", name: "Химия в быту" },
+        { id: "elements", name: "Химические элементы" },
+        { id: "bestmetal", name: "Металл - самый, самый" },
+        { id: "safety", name: "Жизнь моя в опасности..." },
+        { id: "substance", name: "Вещество привычное..." }
+    ];
+
+    const values = [20, 40, 60, 80, 100];
+    let currentActiveId = null;
+
+    function initBoard() {
+        const board = document.getElementById('game-board');
+        categories.forEach(cat => {
+            const row = document.createElement('tr');
+            row.className = "border-b border-red-50 hover:bg-red-50/30 transition";
+            const catCell = document.createElement('td');
+            catCell.className = "p-4 md:p-6 font-black text-red-900 text-[10px] md:text-xs tracking-tighter bg-red-50/20 uppercase";
+            catCell.textContent = cat.name;
+            row.appendChild(catCell);
+            values.forEach(val => {
+                const id = `q-${cat.id}-${val}`;
+                const cell = document.createElement('td');
+                cell.id = id;
+                cell.className = "p-1.5 md:p-3";
+                const btn = document.createElement('div');
+                btn.className = `point-cell h-14 md:h-20 flex items-center justify-center rounded-2xl cursor-pointer text-white font-black text-xl md:text-2xl shadow-md border-b-4 border-black/20`;
+                if(val === 20) btn.classList.add('bg-orange-400');
+                else if(val === 40) btn.classList.add('bg-orange-500');
+                else if(val === 60) btn.classList.add('bg-red-500');
+                else if(val === 80) btn.classList.add('bg-red-600');
+                else btn.classList.add('bg-red-800');
+                btn.textContent = val;
+                btn.onclick = () => openQuestion(id, cat.name, val);
+                cell.appendChild(btn);
+                row.appendChild(cell);
+            });
+            board.appendChild(row);
+        });
+    }
+
+    function openQuestion(id, catName, points) {
+        const cell = document.getElementById(id).querySelector('.point-cell');
+        if (cell.classList.contains('visited')) return;
+        currentActiveId = id;
+        const data = questionBank[id];
+        document.getElementById('modal-category').textContent = catName;
+        document.getElementById('modal-points').textContent = `${points} баллов`;
+        document.getElementById('question-text').textContent = data.q;
+        document.getElementById('answer-text').textContent = data.a;
+        const badge = document.getElementById('svoya-badge');
+        data.isSvoya ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+        document.getElementById('answer-container').classList.add('hidden');
+        document.getElementById('show-answer-btn').classList.remove('hidden');
+        document.getElementById('finish-btn').classList.add('hidden');
+        document.getElementById('cancel-btn').classList.remove('hidden');
+        document.getElementById('modal-overlay').classList.replace('hidden', 'flex');
+        cell.classList.add('visited');
+    }
+
+    function showAnswer() {
+        document.getElementById('answer-container').classList.remove('hidden');
+        document.getElementById('show-answer-btn').classList.add('hidden');
+        document.getElementById('finish-btn').classList.remove('hidden');
+        document.getElementById('cancel-btn').classList.add('hidden');
+    }
+
+    function closeModalAndReset() {
+        if (currentActiveId) document.getElementById(currentActiveId).querySelector('.point-cell').classList.remove('visited');
+        document.getElementById('modal-overlay').classList.replace('flex', 'hidden');
+        currentActiveId = null;
+    }
+
+    function closeModalPermanent() {
+        document.getElementById('modal-overlay').classList.replace('flex', 'hidden');
+        currentActiveId = null;
+    }
+
+    window.onload = initBoard;
+</script>
+</body>
+</html>
